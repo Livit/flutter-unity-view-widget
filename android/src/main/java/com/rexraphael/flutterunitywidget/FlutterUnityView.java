@@ -33,6 +33,7 @@ public class FlutterUnityView implements PlatformView, MethodChannel.MethodCallH
 
         channel.setMethodCallHandler(this);
         UnityUtils.addUnityEventListener(this);
+        UnityUtils.resume();
     }
 
     @Override
@@ -89,7 +90,8 @@ public class FlutterUnityView implements PlatformView, MethodChannel.MethodCallH
     @Override
     public void dispose() {
         if (UnityUtils.isUnityReady()) {
-            UnityUtils.getPlayer().quit();
+            //UnityUtils.getPlayer().quit(); // Disabled as this causes the Flutter app to crash as well, and no other solution at the time of coding. More info here: https://github.com/snowballdigital/flutter-unity-view-widget/issues/46
+            UnityUtils.pause();
         }
     }
 
