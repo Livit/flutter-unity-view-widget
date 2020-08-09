@@ -52,7 +52,7 @@ class UnityWidgetController {
   }
 
   Future<void> _dispose() async {
-    await channel.invokeMethod('dispose');
+    //await channel.invokeMethod('dispose');  // Unity crashes when diposed, so we don't dipose for now
   }
 
   Future<dynamic> _handleMethod(MethodCall call) async {
