@@ -1,3 +1,32 @@
+## 3.0.1
+
+* Fixed minor bugs
+
+## 3.0.0
+
+* Lots of breaking changes
+* Deprecated APIs
+* Fixed [Issue 231](https://github.com/juicycleff/flutter-unity-view-widget/issues/231)
+* Fixed [Issue 230](https://github.com/juicycleff/flutter-unity-view-widget/issues/230)
+
+
+## 2.0.0+2
+
+* fixed some bugs
+
+## 2.0.0+1
+
+* delete duplicated UnityPlayerActivity
+
+## 2.0.0
+
+* Added support for unity scene loaded events [@juicycleff](https://github.com/juicycleff)
+* Exposed core unity player api such as quit and unload [@juicycleff](https://github.com/juicycleff)
+* Complete rewrite of package to fix bugs [@juicycleff](https://github.com/juicycleff)
+* Improved build scripts [@juicycleff](https://github.com/juicycleff)
+* Support for large teams with flutter unity cli [@juicycleff](https://github.com/juicycleff)
+* Plug and play support for Android [@juicycleff](https://github.com/juicycleff)
+
 ## 0.1.6+8
 
 * Breaking change for unityframework iOS
