@@ -6,7 +6,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
 
-import com.unity3d.player.UnityPlayerActivity;
+// import com.unity3d.player.UnityPlayerActivity;
+import com.labster.mobile.unity3d.player.UnityPlayerActivity;
 
 import java.util.Objects;
 
@@ -42,7 +43,7 @@ public class OverrideUnityActivity extends UnityPlayerActivity {
         startActivity(intent);
     }
 
-    @Override public void onUnityPlayerUnloaded() {
+    public void onUnityPlayerUnloaded() {
         showMainActivity();
     }
 
