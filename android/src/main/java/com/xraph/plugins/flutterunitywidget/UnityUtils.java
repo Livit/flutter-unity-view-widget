@@ -78,8 +78,10 @@ public class UnityUtils {
                 @Override
                 public void run() {
                     activity.getWindow().setFormat(PixelFormat.RGBA_8888);
-                    unityPlayer = new UnityPlayer(options.isArEnable() ? activity : activity.getApplicationContext(), ule);
-
+                    // unityPlayer = new UnityPlayer(options.isArEnable() ? activity : activity.getApplicationContext(), ule);
+                    // MOBILE-368: AVProVideo plugin for Android needs to use the current activity as context.
+                    unityPlayer = new UnityPlayer(activity, ule);
+                    
                     try {
                         // wait a moument. fix unity cannot start when startup.
                         Thread.sleep( 1000 );
