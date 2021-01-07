@@ -3,24 +3,25 @@
 
 [![version][version-badge]][package]
 [![MIT License][license-badge]][license]
-[![PRs Welcome][prs-badge]](http://makeapullrequest.com)
+[![PRs Welcome][prs-badge]](https://makeapullrequest.com)
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
 [![Star on GitHub][github-star-badge]][github-star]
 
 [![Gitter](https://badges.gitter.im/flutter-unity/community.svg)](https://gitter.im/flutter-unity/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Flutter unity 3D widget for embedding unity in flutter. Now you can make awesome gamified features of your app in Unity and get it rendered in a Flutter app both in fullscreen and embeddable mode. Works great on Android and iOS. There are now two unity app examples in the unity folder, one with the default scene and another based on Unity AR foundation samples.
+Flutter unity 3D widget for embedding unity in flutter. Now you can make awesome gamified features of your app in Unity and get it rendered in a Flutter app both in fullscreen and embeddable mode. Works great on Android, iPad OS and iOS. There are now two unity app examples in the unity folder, one with the default scene and another based on Unity AR foundation samples.
 <br />
 <br />
-Note: I have updated the example for Unity 2019.3.5 and there are some new changes in the scripts folder. Please replace your already copied files and folders in your unity project
+Note: I have updated the example for Unity 2019.3.5 and there are some new changes in the scripts folder. Please replace your already copied files and folders in your unity project. This package only supports Unity version 2019.3 and later.
+Also `3.0.0` release contains breaking changes in flutter and UnityPackage has been updated.
 
 ## Installation
  First depend on the library by adding this to your packages `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_unity_widget: ^0.1.6+8
+  flutter_unity_widget: ^3.0.1
 ```
 
 Now inside your Dart code you can import it.
@@ -34,8 +35,8 @@ import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 
 30 fps gifs, showcasing communication between Flutter and Unity:
 
-![gif](https://github.com/snowballdigital/flutter-unity-view-widget/blob/master/preview_android.gif?raw=true)
-![gif](https://github.com/snowballdigital/flutter-unity-view-widget/blob/master/preview_ios.gif?raw=true)
+![gif](https://github.com/juicycleff/flutter-unity-view-widget/blob/master/files/preview_android.gif?raw=true)
+![gif](https://github.com/juicycleff/flutter-unity-view-widget/blob/master/files/preview_ios.gif?raw=true)
 
 <br />
 
@@ -73,50 +74,53 @@ Be sure you have at least one scene added to your build.
 3. => Player Settings
 
    **Android Platform**:
-    1. Make sure your `Graphics APIs` are set to OpenGLES3 with a fallback to OpenGLES2 (no Vulkan)
-   
-    2. Change `Scripting Backend` to IL2CPP.
+    1. Change `Scripting Backend` to IL2CPP.
 
-    3. Mark the following `Target Architectures` :
+    2. Mark the following `Target Architectures` :
         - ARMv7        ✅
         - ARM64        ✅
         - x86          ✅ (In Unity Version 2019.2+, this feature is not avaliable due to the lack of Unity Official Support)
 
-<img src="https://raw.githubusercontent.com/snowballdigital/flutter-unity-view-widget/master/Screenshot%202019-03-27%2007.31.55.png" width="400" />
+<img src="https://raw.githubusercontent.com/juicycleff/flutter-unity-view-widget/master/files/Screenshot%202019-03-27%2007.31.55.png" width="400" />
 
    **iOS Platform**:
-    1. This only works with Unity version >=2019.3 because uses Unity as a library!
-    2. Depending on where you want to test or run your app, (simulator or physical device), you should select the appropriate SDK on `Target SDK`.
+    1. Depending on where you want to test or run your app, (simulator or physical device), you should select the appropriate SDK on `Target SDK`.
       <br />
 
 <br />
 
-### Add Unity Build Scripts and Export
+### Add Flutter Unity Package to Unity Project
 
-Copy [`Build.cs`](https://github.com/snowballdigital/flutter-unity-view-widget/tree/master/scripts/unity_2019_3_5_later/Editor/Build.cs) and [`XCodePostBuild.cs`](https://github.com/snowballdigital/flutter-unity-view-widget/tree/master/scripts/unity_2019_3_5_later/Editor/XCodePostBuild.cs) to `unity/<Your Unity Project>/Assets/Scripts/Editor/`
+Import [`FlutterUnityPackage.unitypackage`](https://github.com/juicycleff/flutter-unity-view-widget/tree/master/scripts/FlutterUnityPackage.unitypackage) to `unity/<Your Unity Project>`
 
-Open your unity project in Unity Editor. Now you can export the Unity project with `Flutter/Export Android` (for Unity versions up to 2019.2), `Flutter/Export Android (Unity 2019.3.*)` (for Unity versions 2019.3 and up, which uses the new [Unity as a Library](https://blogs.unity3d.com/2019/06/17/add-features-powered-by-unity-to-native-mobile-apps/) export format), or `Flutter/Export IOS` menu.
+Open your unity project in Unity Editor. Now you can export the Unity project with `Flutter/Export Android` (for Unity versions 2019.3 and up, which uses the new [Unity as a Library](https://blogs.unity3d.com/2019/06/17/add-features-powered-by-unity-to-native-mobile-apps/) export format), or `Flutter/Export IOS` menu.
 
-<img src="https://github.com/snowballdigital/flutter-unity-view-widget/blob/master/Screenshot%202019-03-27%2008.13.08.png?raw=true" width="400" />
+Please do not use `Flutter/Export <Platform> plugin` as it was specially added to work with [`flutter_unity_cli`](https://github.com/juicycleff/flutter_unity_cli) for larger projects
 
-Android will export unity project to `android/UnityExport`.
+<img src="https://github.com/juicycleff/flutter-unity-view-widget/blob/master/files/Screenshot%202019-03-27%2008.13.08.png?raw=true" width="400" />
 
-IOS will export unity project to `ios/UnityExport`.
+Android will export unity project to `android/unityLibrary`.
+
+IOS will export unity project to `ios/UnityLibrary`.
 
 <br />
 
- **Android Platform Only**
+ **Note**:
+    The build unity export script automatically sets things up for you, so you don't have to do anything for android.
+    But if you want to manually set it up, continue, else skip to iOS.
 
-  1. After exporting the unity game, open Android Studio and and add the `Unity Classes` Java `.jar` file as a module to the unity project. You just need to do this once if you are exporting from the same version of Unity everytime. The `.jar` file is located in the ```<Your Flutter Project>/android/UnityExport/lib``` folder
+ **Android Platform Only (Manual Steps)**
+
+  1. After exporting the unity game, open Android Studio and then
   2. Add the following to your ```<Your Flutter Project>/android/settings.gradle```file:
 ```gradle
-include ":UnityExport"
-project(":UnityExport").projectDir = file("./UnityExport")
+include ":unityLibrary"
+project(":unityLibrary").projectDir = file("./unityLibrary")
 ```
-  3. If using Unity 2019.2 or older, open `build.gradle` of `UnityExport` module and replace the dependencies with
+  3. open ```<Your Flutter Project>/android/app/build.gradle```file and add:
 ```gradle
     dependencies {
-        implementation project(':unity-classes') // the unity classes module you added from step 1
+        implementation project(':unityLibrary')
     }
 ```
   4. To build a release package, you need to add signconfig in `UnityExport/build.gradle`. The code below use the `debug` signConfig for all buildTypes, which can be changed as you well if you need specify signConfig.
@@ -136,25 +140,32 @@ project(":UnityExport").projectDir = file("./UnityExport")
             matchingFallbacks = ['debug', 'release']
         }
     }
-``` 
-  5. If you found the duplicate app icons on your launcher after installing the app, you can just open `UnityExport` Manifest file and comment the codes below
-```gradle
-    <activity android:name="com.unity3d.player.UnityPlayerActivity" android:theme="@style/UnityThemeSelector" android:screenOrientation="fullSensor" android:launchMode="singleTask" android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density" android:hardwareAccelerated="false">
-//      <intent-filter>
-//        <action android:name="android.intent.action.MAIN" />
-//        <category android:name="android.intent.category.LAUNCHER" />
-//        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-//      </intent-filter>
-      <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
-    </activity>
+```
+  4. If you use `minifyEnabled true` and need to use UnityMessage in Flutter, please add proguard content below:
+```
+-keep class com.xraph.plugins.** {*;}
+```
+  5. If you want unity in it's own activity as an alternative, just add this to your app `AndroidManifest.xml` file
+```xml
+        <activity
+            android:name="com.xraph.plugins.flutterunitywidget.ExtendedUnityActivity"
+            android:theme="@style/UnityThemeSelector"
+            android:screenOrientation="fullSensor"
+            android:launchMode="singleTask"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
+            android:hardwareAccelerated="false"
+            android:process=":Unity"
+        >
+            <meta-data android:name="com.xraph.plugins.flutterunitywidget.ExtendedUnityActivity" android:value="true" />
+        </activity>
 ```
 
 **iOS Platform Only**
 
-  1. open your ios/Runner.xcworkspace (workspace!, not the project) in Xcode and add the exported project in the workspace root (with a right click in the Navigator, not on an item -> Add Files to “Runner” -> add the UnityExport/Unity-Iphone.xcodeproj file
-  <img src="workspace.png" width="400" />
-  2. Select the Unity-iPhone/Data folder and change the Target Membership for Data folder to UnityFramework
-  <img src="change_target_membership_data_folder.png" width="400" />
+  1. open your ios/Runner.xcworkspace (workspace!, not the project) in Xcode and add the exported project in the workspace root (with a right click in the Navigator, not on an item -> Add Files to “Runner” -> add the unityLibrary/Unity-Iphone.xcodeproj file
+  <img src="files/workspace.png" width="400" />
+  2. Select the Unity-iPhone/Data folder and change the Target Membership for Data folder to UnityFramework (Optional)
+  <img src="files/change_target_membership_data_folder.png" width="400" />
   3. Add this to your Runner/Runner/Runner-Bridging-Header.h
 
 ```c
@@ -165,6 +176,25 @@ project(":UnityExport").projectDir = file("./UnityExport")
 ```swift
 InitArgs(CommandLine.argc, CommandLine.unsafeArgv)
 ```
+For example
+
+```swift
+import UIKit
+import Flutter
+
+@UIApplicationMain
+@objc class AppDelegate: FlutterAppDelegate {
+  override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+  ) -> Bool {
+    InitArgs(CommandLine.argc, CommandLine.unsafeArgv)
+    GeneratedPluginRegistrant.register(with: self)
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}
+```
+
 Or when using Objective-C your `main.m` should look like this:
 ```
 #import "UnityUtils.h"
@@ -179,11 +209,11 @@ int main(int argc, char * argv[]) {
   5. Opt-in to the embedded views preview by adding a boolean property to the app's `Info.plist` file with the key `io.flutter.embedded_views_preview` and the value `YES`.
 
   6. Add UnityFramework.framework as a Library to the Runner project
-  <img src="libraries.png" width="400" />
+  <img src="files/libraries.png" width="400" />
 <br />
 
 ### AR Foundation ( requires Unity 2019.3.*)
-![gif](https://github.com/snowballdigital/flutter-unity-view-widget/blob/master/ar-demo.gif?raw=true)
+![gif](https://github.com/juicycleff/flutter-unity-view-widget/blob/master/files/ar-demo.gif?raw=true)
 
 Check out the Unity AR Foundation Samples [Demo Repository](https://github.com/juicycleff/flutter-unity-arkit-demo)
 
@@ -200,23 +230,18 @@ key: `Privacy - Camera Usage Description` value: `$(PRODUCT_NAME) uses Cameras`
 
 If you want to use Unity for integrating Augmented Reality in your Flutter app, a few more changes are required:
   1. Export the Unity Project as previously stated (using the Editor Build script).
-  2. Check if the exported project includes all required Unity libraries (.so) files (`lib/\<architecture\>/libUnityARCore.so` and `libarpresto_api.so`). There seems to be a bug where a Unity export does not include all lib files. If they are missing, use Unity to build a standalone .apk of your AR project, unzip the resulting apk, and copy over the missing .lib files to the `UnityExport` module.
-  3. Similar to how you've created the `unity-classes` module in Android Studio, create similar modules for all exported .aar and .jar files in the `UnityExport/libs` folder (`arcore_client.aar`, `unityandroidpermissions.aar`, `UnityARCore.aar`).
-  4. Update the build.gradle script of the `UnityExport` module to depend on the new modules (again, similar to how it depends on `unity-classes`).
+  2. Check if the exported project includes all required Unity libraries (.so) files (`lib/\<architecture\>/libUnityARCore.so` and `libarpresto_api.so`). There seems to be a bug where a Unity export does not include all lib files. If they are missing, use Unity to build a standalone .apk of your AR project, unzip the resulting apk, and copy over the missing .lib files to the `unityLibrary` module.
+  3. Similar to how you've created the `unity-classes` module in Android Studio, create similar modules for all exported .aar and .jar files in the `unityLibrary/libs` folder (`arcore_client.aar`, `unityandroidpermissions.aar`, `UnityARCore.aar`).
+  4. Update the build.gradle script of the `unityLibrary` module to depend on the new modules (again, similar to how it depends on `unity-classes`).
   5. Finally, update your Dart code build method where you include the `UnityWidget` and add `isARScene: true,`.
   Sadly, this does have the side effect of making your Flutter activity act in full screen, as Unity requires control of your Activity for running in AR, and it makes several modifications to your Activity as a result (including setting it to full screen).
 
  
-### Add UnityMessageManager Support
+### Add Flutter Unity Package
 
-Copy [`UnityMessageManager.cs`](https://github.com/snowballdigital/flutter-unity-view-widget/tree/master/scripts/unity_2019_3_5_later/UnityMessageManager.cs) to your unity project.
+Import [`FlutterUnityPackage.unitypackage`](https://github.com/juicycleff/flutter-unity-view-widget/tree/master/scripts/FlutterUnityPackage.unitypackage) to `unity/<Your Unity Project>`
 
-Copy this folder [`JsonDotNet`](https://github.com/snowballdigital/flutter-unity-view-widget/tree/master/scripts/unity_2019_3_5_later/JsonDotNet) to your unity project.
-
-Copy [`link.xml`](https://github.com/snowballdigital/flutter-unity-view-widget/tree/master/scripts/unity_2019_3_5_later/link.xml) to your unity project.
-
-(2019.3.5* only) Copy this folder [`Plugins`](https://github.com/snowballdigital/flutter-unity-view-widget/tree/master/scripts/unity_2019_3_5_later/Plugins) to your unity project.
-
+PS: ^3.0.0 version use [`FlutterUnityPackage-3.0.0.unitypackage`](https://github.com/juicycleff/flutter-unity-view-widget/tree/master/scripts/FlutterUnityPackage-3.0.0.unitypackage) instead of above package.
 <br />
 
 ### Vuforia
@@ -238,6 +263,12 @@ Thanks to [@PiotrxKolasinski](https://github.com/PiotrxKolasinski) for writing d
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
+
+void main() {
+  runApp(MaterialApp(
+    home: UnityDemoScreen()
+  ));
+}
 
 class UnityDemoScreen extends StatefulWidget {
 
@@ -265,7 +296,7 @@ class _UnityDemoScreenState extends State<UnityDemoScreen>{
           child: Container(
             color: colorYellow,
             child: UnityWidget(
-              onUnityViewCreated: onUnityCreated,
+              onUnityCreated: onUnityCreated,
             ),
           ),
         ),
@@ -322,9 +353,11 @@ class _MyAppState extends State<MyApp> {
           child: Stack(
             children: <Widget>[
               UnityWidget(
-                onUnityViewCreated: onUnityCreated,
-                isARScene: false,
-                onUnityMessage: onUnityMessage,
+                  onUnityCreated: onUnityCreated,
+                  isARScene: true,
+                  onUnityMessage: onUnityMessage,
+                  onUnitySceneLoaded: onUnitySceneLoaded,
+                  fullscreen: false,
               ),
               Positioned(
                 bottom: 20,
@@ -370,7 +403,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   // Communication from Unity to Flutter
-  void onUnityMessage(controller, message) {
+  void onUnityMessage(message) {
     print('Received message from unity: ${message.toString()}');
   }
 
@@ -378,31 +411,60 @@ class _MyAppState extends State<MyApp> {
   void onUnityCreated(controller) {
     this._unityWidgetController = controller;
   }
+
+  // Communication from Unity when new scene is loaded to Flutter
+  void onUnitySceneLoaded(SceneLoaded sceneInfo) {
+    print('Received scene loaded from unity: ${sceneInfo.name}');
+    print('Received scene loaded from unity buildIndex: ${sceneInfo.buildIndex}');
+  }
+
 }
 
 ```
 
+## Props
+ - `fullscreen` (Enable or disable fullscreen mode on Android)
+ - `disableUnload` (Disable unload on iOS when unload is called)
+
 ## API
  - `pause()` (Use this to pause unity player)
  - `resume()` (Use this to resume unity player)
+ - `unload()` (Use this to unload unity player)
+ - `quit()` (Use this to quit unity player)
  - `postMessage(String gameObject, methodName, message)` (Allows you invoke commands in Unity from flutter)
- - `onUnityMessage(data)` (Unity to flutter bindding and listener)
+ - `onUnityMessage(data)` (Unity to flutter binding and listener)
+ - `onUnityUnloaded()` (Unity to flutter listener when unity is unloaded)
+ - `onUnitySceneLoaded(String name, int buildIndex, bool isLoaded, bool isValid,)` (Unity to flutter binding and listener when new scene is loaded)
 
 ## Known issues
- - Android Export requires several manual changes
- - Using AR will make the activity run in full screen (hiding status and navigation bar).
+ - Remember to disabled fullscreen in unity player settings to disable unity fullscreen.
 
+
+#### Sponsors
+
+Support this project with your organization. Your donations will be used to help children first and then those in need. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/ultimate-backend/contribute)]
+
+<a href="https://opencollective.com/ultimate-backend/sponsor/0/website"><img src="https://opencollective.com/ultimate-backend/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/1/website"><img src="https://opencollective.com/ultimate-backend/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/2/website"><img src="https://opencollective.com/ultimate-backend/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/3/website"><img src="https://opencollective.com/ultimate-backend/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/4/website"><img src="https://opencollective.com/ultimate-backend/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/5/website"><img src="https://opencollective.com/ultimate-backend/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/6/website"><img src="https://opencollective.com/ultimate-backend/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/7/website"><img src="https://opencollective.com/ultimate-backend/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/8/website"><img src="https://opencollective.com/ultimate-backend/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/ultimate-backend/sponsor/9/website"><img src="https://opencollective.com/ultimate-backend/sponsor/9/avatar.svg"></a>
 
 [version-badge]: https://img.shields.io/pub/v/flutter_unity_widget.svg?style=flat-square
 [package]: https://pub.dartlang.org/packages/flutter_unity_widget/
-[license-badge]: https://img.shields.io/github/license/snowballdigital/flutter-unity-view-widget.svg?style=flat-square
-[license]: https://github.com/snowballdigital/flutter-unity-view-widget/blob/master/LICENSE
+[license-badge]: https://img.shields.io/github/license/juicycleff/flutter-unity-view-widget.svg?style=flat-square
+[license]: https://github.com/juicycleff/flutter-unity-view-widget/blob/master/LICENSE
 [prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
-[prs]: http://makeapullrequest.com
-[github-watch-badge]: https://img.shields.io/github/watchers/snowballdigital/flutter-unity-view-widget.svg?style=social
-[github-watch]: https://github.com/snowballdigital/flutter-unity-view-widget/watchers
-[github-star-badge]: https://img.shields.io/github/stars/snowballdigital/flutter-unity-view-widget.svg?style=social
-[github-star]: https://github.com/snowballdigital/flutter-unity-view-widget/stargazers
+[prs]: https://makeapullrequest.com
+[github-watch-badge]: https://img.shields.io/github/watchers/juicycleff/flutter-unity-view-widget.svg?style=social
+[github-watch]: https://github.com/juicycleff/flutter-unity-view-widget/watchers
+[github-star-badge]: https://img.shields.io/github/stars/juicycleff/flutter-unity-view-widget.svg?style=social
+[github-star]: https://github.com/juicycleff/flutter-unity-view-widget/stargazers
 
 ## Contributors ✨
 
@@ -413,10 +475,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://www.xraph.com"><img src="https://avatars2.githubusercontent.com/u/11243590?v=4" width="100px;" alt="Rex Raphael"/><br /><sub><b>Rex Raphael</b></sub></a><br /><a href="https://github.com/snowballdigital/flutter-unity-view-widget/commits?author=juicycleff" title="Code">💻</a> <a href="https://github.com/snowballdigital/flutter-unity-view-widget/commits?author=juicycleff" title="Documentation">📖</a> <a href="#question-juicycleff" title="Answering Questions">💬</a> <a href="https://github.com/snowballdigital/flutter-unity-view-widget/issues?q=author%3Ajuicycleff" title="Bug reports">🐛</a> <a href="#review-juicycleff" title="Reviewed Pull Requests">👀</a> <a href="#tutorial-juicycleff" title="Tutorials">✅</a></td>
-    <td align="center"><a href="https://stockxit.com"><img src="https://avatars1.githubusercontent.com/u/1475368?v=4" width="100px;" alt="Thomas Stockx"/><br /><sub><b>Thomas Stockx</b></sub></a><br /><a href="https://github.com/snowballdigital/flutter-unity-view-widget/commits?author=thomas-stockx" title="Code">💻</a> <a href="https://github.com/snowballdigital/flutter-unity-view-widget/commits?author=thomas-stockx" title="Documentation">📖</a> <a href="#question-thomas-stockx" title="Answering Questions">💬</a> <a href="#tutorial-thomas-stockx" title="Tutorials">✅</a></td>
-    <td align="center"><a href="http://krispypen.github.io/"><img src="https://avatars1.githubusercontent.com/u/156955?v=4" width="100px;" alt="Kris Pypen"/><br /><sub><b>Kris Pypen</b></sub></a><br /><a href="https://github.com/snowballdigital/flutter-unity-view-widget/commits?author=krispypen" title="Code">💻</a> <a href="https://github.com/snowballdigital/flutter-unity-view-widget/commits?author=krispypen" title="Documentation">📖</a> <a href="#question-krispypen" title="Answering Questions">💬</a> <a href="#tutorial-krispypen" title="Tutorials">✅</a></td>
-    <td align="center"><a href="https://github.com/lorant-csonka-planorama"><img src="https://avatars2.githubusercontent.com/u/48209860?v=4" width="100px;" alt="Lorant Csonka"/><br /><sub><b>Lorant Csonka</b></sub></a><br /><a href="https://github.com/snowballdigital/flutter-unity-view-widget/commits?author=lorant-csonka-planorama" title="Documentation">📖</a> <a href="#video-lorant-csonka-planorama" title="Videos">📹</a></td>
+    <td align="center"><a href="https://www.xraph.com"><img src="https://avatars2.githubusercontent.com/u/11243590?v=4" width="100px;" alt="Rex Raphael"/><br /><sub><b>Rex Raphael</b></sub></a><br /><a href="https://github.com/juicycleff/flutter-unity-view-widget/commits?author=juicycleff" title="Code">💻</a> <a href="https://github.com/juicycleff/flutter-unity-view-widget/commits?author=juicycleff" title="Documentation">📖</a> <a href="#question-juicycleff" title="Answering Questions">💬</a> <a href="https://github.com/juicycleff/flutter-unity-view-widget/issues?q=author%3Ajuicycleff" title="Bug reports">🐛</a> <a href="#review-juicycleff" title="Reviewed Pull Requests">👀</a> <a href="#tutorial-juicycleff" title="Tutorials">✅</a></td>
+    <td align="center"><a href="https://stockxit.com"><img src="https://avatars1.githubusercontent.com/u/1475368?v=4" width="100px;" alt="Thomas Stockx"/><br /><sub><b>Thomas Stockx</b></sub></a><br /><a href="https://github.com/juicycleff/flutter-unity-view-widget/commits?author=thomas-stockx" title="Code">💻</a> <a href="https://github.com/juicycleff/flutter-unity-view-widget/commits?author=thomas-stockx" title="Documentation">📖</a> <a href="#question-thomas-stockx" title="Answering Questions">💬</a> <a href="#tutorial-thomas-stockx" title="Tutorials">✅</a></td>
+    <td align="center"><a href="https://krispypen.github.io/"><img src="https://avatars1.githubusercontent.com/u/156955?v=4" width="100px;" alt="Kris Pypen"/><br /><sub><b>Kris Pypen</b></sub></a><br /><a href="https://github.com/juicycleff/flutter-unity-view-widget/commits?author=krispypen" title="Code">💻</a> <a href="https://github.com/juicycleff/flutter-unity-view-widget/commits?author=krispypen" title="Documentation">📖</a> <a href="#question-krispypen" title="Answering Questions">💬</a> <a href="#tutorial-krispypen" title="Tutorials">✅</a></td>
+    <td align="center"><a href="https://github.com/lorant-csonka-planorama"><img src="https://avatars2.githubusercontent.com/u/48209860?v=4" width="100px;" alt="Lorant Csonka"/><br /><sub><b>Lorant Csonka</b></sub></a><br /><a href="https://github.com/juicycleff/flutter-unity-view-widget/commits?author=lorant-csonka-planorama" title="Documentation">📖</a> <a href="#video-lorant-csonka-planorama" title="Videos">📹</a></td>
   </tr>
 </table>
 

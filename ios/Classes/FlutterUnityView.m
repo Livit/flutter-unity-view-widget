@@ -3,11 +3,12 @@
 //  FlutterUnityView
 //
 //  Created by krispypen on 8/1/2019
+//  Updated by Rex Raphael on 8/27/2020.
 //
 
 #import "FlutterUnityView.h"
 
-@implementation FlutterUnityView
+@implementation FLTUnityView
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -28,6 +29,7 @@
 - (void)layoutSubviews
 {
     [super layoutSubviews];
+    
     [(UIView *)self.uView removeFromSuperview];
     [self insertSubview:(UIView *)self.uView atIndex:0];
     ((UIView *)self.uView).frame = self.bounds;

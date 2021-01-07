@@ -4,33 +4,9 @@
 
 #include <UnityFramework/UnityFramework.h>
 
-// Hack to work around iOS SDK 4.3 linker problem
-// we need at least one __TEXT, __const section entry in main application .o files
-// to get this section emitted at right time and so avoid LC_ENCRYPTION_INFO size miscalculation
-static const int constsection = 0;
+static bool unity_warmed_up = false;
 
-bool unity_inited = false;
-
-// keep arg for unity init from non main
-int g_argc;
-char** g_argv;
-NSDictionary* appLaunchOpts;
-
-void UnityInitTrampoline();
-
-UnityFramework* ufw;
-
-extern "C" void InitArgs(int argc, char* argv[])
-{
-    g_argc = argc;
-    g_argv = argv;
-}
-
-extern "C" bool UnityIsInited()
-{
-    return unity_inited;
-}
-
+// Load unity framework for fisrt run
 UnityFramework* UnityFrameworkLoad()
 {
     NSString* bundlePath = nil;
@@ -44,59 +20,96 @@ UnityFramework* UnityFrameworkLoad()
     return ufw;
 }
 
-extern "C" void InitUnity()
+// Hack to work around iOS SDK 4.3 linker problem
+// we need at least one __TEXT, __const section entry in main application .o files
+// to get this section emitted at right time and so avoid LC_ENCRYPTION_INFO size miscalculation
+static const int constsection = 0;
+
+// keep arg for unity init from non main
+int gArgc = 0;
+char** gArgv = nullptr;
+NSDictionary* appLaunchOpts = [[NSDictionary alloc] init];
+
+UnityUtils* hostDelegate = NULL;
+
+extern "C" void InitArgs(int argc, char* argv[])
 {
-    if (unity_inited) {
-        return;
-    }
-    unity_inited = true;
-
-    ufw = UnityFrameworkLoad();
-
-    [ufw setDataBundleId: "com.unity3d.framework"];
-    [ufw frameworkWarmup: g_argc argv: g_argv];
-    // [ufw setExecuteHeader: &_mh_execute_header];
-    // [ufw runEmbeddedWithArgc: gArgc argv: gArgv appLaunchOpts: appLaunchOpts];
+    gArgc = argc;
+    gArgv = argv;
 }
 
-extern "C" void UnityPostMessage(NSString* gameObject, NSString* methodName, NSString* message)
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [ufw sendMessageToGOWithName:[gameObject UTF8String] functionName:[methodName UTF8String] message:[message UTF8String]];
-    });
-}
-
-extern "C" void UnityPauseCommand()
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [ufw pause:true];
-    });
-}
-
-extern "C" void UnityResumeCommand()
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [ufw pause:false];
-    });
-}
+// -------------------------------
+// -------------------------------
+// -------------------------------
 
 @implementation UnityUtils
 
 static NSHashTable* mUnityEventListeners = [NSHashTable weakObjectsHashTable];
-static BOOL _isUnityReady = NO;
+UnityAppController *controller;
 
-+ (BOOL)isUnityReady
+static bool _isUnityPaused = false;
+static bool _isUnityReady = false;
+static bool _isUnityLoaded = false;
+
+- (bool)unityIsInitialized
 {
-    return _isUnityReady;
+    return [self ufw] && [[self ufw] appController];
 }
 
-+ (void)handleAppStateDidChange:(NSNotification *)notification
+// initialize unity framework
+- (void)initUnity
+{
+    if([self unityIsInitialized]) {
+        [[self ufw] showUnityWindow];
+        return;
+    }
+
+    [self setUfw: UnityFrameworkLoad()];
+    
+    [[self ufw] setDataBundleId: "com.unity3d.framework"];
+    [[self ufw] registerFrameworkListener: self];
+
+    [self registerUnityListener];
+    [[self ufw] frameworkWarmup: gArgc argv: gArgv];
+
+    // [[self ufw] runEmbeddedWithArgc: gArgc argv: gArgv appLaunchOpts: appLaunchOpts];
+    [[[[self ufw] appController] window] setWindowLevel: UIWindowLevelNormal - 1];
+    _isUnityLoaded = true;
+}
+
+- (void)unregisterUnityListener
+{
+    if ([self unityIsInitialized]) {
+        [[self ufw] unregisterFrameworkListener: self];
+    }
+}
+
+- (void)registerUnityListener
+{
+    if ([self unityIsInitialized]) {
+        [[self ufw] registerFrameworkListener: self];
+    }
+}
+
+- (void)unityDidUnload:(NSNotification*)notification
+{
+    NSLog(@"unityDidUnloaded called");
+
+    [self unregisterUnityListener];
+    [[self ufw] unregisterFrameworkListener: self];
+    [self setUfw: nil];
+    _isUnityReady = false;
+    _isUnityLoaded = false;
+}
+
+// manage all app state notification
+- (void)handleAppStateDidChange:(NSNotification *)notification
 {
     if (!_isUnityReady) {
         return;
     }
-    UnityAppController* unityAppController = GetAppController();
-
+    
+    UnityAppController* unityAppController = [[self ufw] appController];
     UIApplication* application = [UIApplication sharedApplication];
 
     if ([notification.name isEqualToString:UIApplicationWillResignActiveNotification]) {
@@ -114,7 +127,8 @@ static BOOL _isUnityReady = NO;
     }
 }
 
-+ (void)listenAppState
+// Listener for app lifecycle eventa
+- (void)listenAppState
 {
     for (NSString *name in @[UIApplicationDidBecomeActiveNotification,
                              UIApplicationDidEnterBackgroundNotification,
@@ -130,36 +144,99 @@ static BOOL _isUnityReady = NO;
     }
 }
 
-+ (void)createPlayer:(void (^)(void))completed
+// Create new unity player
+- (void)createPlayer:(void (^)(void))completed
 {
-    if (_isUnityReady) {
+    if ([self unityIsInitialized] && _isUnityReady) {
         completed();
         return;
     }
 
     [[NSNotificationCenter defaultCenter] addObserverForName:@"UnityReady" object:nil queue:[NSOperationQueue mainQueue]  usingBlock:^(NSNotification * _Nonnull note) {
-        _isUnityReady = YES;
+        _isUnityReady = true;
         completed();
     }];
 
-    if (UnityIsInited()) {
-        return;
-    }
-
     dispatch_async(dispatch_get_main_queue(), ^{
         UIApplication* application = [UIApplication sharedApplication];
-
-        // Always keep RN window in top
+        
+        // Always keep Flutter window on top
+        UIWindow* flutterUIWindow = application.keyWindow;
+        flutterUIWindow.windowLevel = UIWindowLevelNormal + 1;// Always keep Flutter window in top
         application.keyWindow.windowLevel = UIWindowLevelNormal + 1;
+        
+        [self initUnity];
 
-        InitUnity();
-
-        UnityAppController *controller = GetAppController();
-        [controller application:application didFinishLaunchingWithOptions:nil];
-        [controller applicationDidBecomeActive:application];
-
-        [UnityUtils listenAppState];
+        if(!unity_warmed_up) {
+            controller = GetAppController();
+            [controller application:application didFinishLaunchingWithOptions:nil];
+            [controller applicationDidBecomeActive:application];
+            unity_warmed_up = true;
+        }
+        
+        [self listenAppState];
     });
+}
+
+// Pause unity player
+- (void)pauseUnity
+{
+    NSLog(@"Pause called = %i", _isUnityPaused);
+    if (!_isUnityPaused) {
+        id app = [UIApplication sharedApplication];
+        id appController = [[self ufw] appController];
+        [appController applicationWillResignActive: app];
+        _isUnityPaused = true;
+    }
+}
+
+// Resume unity player
+- (void)resumeUnity
+{
+    NSLog(@"Resume called = %i", _isUnityPaused);
+    if (_isUnityPaused) {
+        id app = [UIApplication sharedApplication];
+        id appController = [[self ufw] appController];
+        [appController applicationWillEnterForeground: app];
+        [appController applicationDidBecomeActive: app];
+        _isUnityPaused = false;
+    }
+}
+
+// Unload unity resources
+- (void)unloadUnity
+{
+    if([self unityIsInitialized]){
+        [UnityFrameworkLoad() unloadApplication];
+    }
+}
+
+// Quit unity application
+- (void)quitUnity
+{
+    if([self unityIsInitialized]){
+        [UnityFrameworkLoad() unloadApplication];
+    }
+}
+
+// Check if unity is paused
+- (bool)isUnityPaused
+{
+    return _isUnityPaused;
+}
+
+// Is unity loaded
+- (bool)isUnityLoaded
+{
+    return _isUnityLoaded;
+}
+
+// Post unity application
+- (void)unityPostMessage:(NSString*) gameObject unityMethodName: (NSString*) methodName unityMessage: (NSString*) message;
+{
+    if([self unityIsInitialized]){
+        [[self ufw] sendMessageToGOWithName:[gameObject UTF8String] functionName:[methodName UTF8String] message:[message UTF8String]];
+    }
 }
 
 @end
