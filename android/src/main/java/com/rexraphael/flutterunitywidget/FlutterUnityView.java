@@ -33,7 +33,6 @@ public class FlutterUnityView implements PlatformView, MethodChannel.MethodCallH
 
         channel.setMethodCallHandler(this);
         UnityUtils.addUnityEventListener(this);
-        UnityUtils.resume();
     }
 
     @Override
